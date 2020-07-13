@@ -112,12 +112,13 @@
     (console :warn "Kee-frame option :debug-config has been removed. Configure timbre logger through :log option instead. Example: {:level :debug :ns-blacklist [\"kee-frame.event-logger\"]}")))
 
 (defn start! [{:keys [routes initial-db router app-db-spec root-component chain-links
-                      screen scroll]
+                      screen scroll interceptors]
                :or   {scroll true}
                :as   config}]
   (deprecations config)
   (when app-db-spec
     (f/reg-global-interceptor (spec/spec-interceptor app-db-spec)))
+  (f/reg-global-interceptor event-logger/interceptor)
   (chain/configure! (concat default-chain-links
                             chain-links))
 
@@ -131,6 +132,10 @@
 
   (when initial-db
     (rf/dispatch-sync [:init initial-db]))
+
+  (doseq [interceptor (or interceptors [rf/trim-v])]
+    (println "adding " interceptor)
+    (f/reg-global-interceptor interceptor))
 
   (when screen
     (let [config (when-not (boolean? screen) screen)]

@@ -5,16 +5,11 @@
             [re-frame.core :as rf :refer [console]]
             [kee-frame.log :as log]
             [kee-frame.spec :as spec]
-            [kee-frame.event-logger :as event-logger]
             [clojure.spec.alpha :as s]
             [expound.alpha :as e]))
-
-;; Interceptors used by all chains and events registered through kee-frame
-(def kee-frame-interceptors [event-logger/interceptor rf/trim-v])
-
 (def valid-option-key? #{:router :hash-routing? :routes :process-route :debug? :debug-config
                          :chain-links :app-db-spec :root-component :initial-db
-                         :screen :scroll :route-change-event :not-found :log})
+                         :screen :scroll :route-change-event :not-found :log :interceptors})
 
 (defn extra-options
   "Complete listing of invalid options sent to the `start!` function."
@@ -79,14 +74,14 @@
 
   `re-frame.core/trim-v` interceptor is also applied."
   ([id handler] (reg-event-fx id nil handler))
-  ([id interceptors handler] (rf/reg-event-fx id (concat kee-frame-interceptors interceptors) handler)))
+  ([id interceptors handler] (rf/reg-event-fx id interceptors handler)))
 
 (defn reg-event-db
   "Exactly same signature as `re-frame.core/reg-event-db`. Use this version if you want kee-frame logging and spec validation.
 
   `re-frame.core/trim-v` interceptor is also applied."
   ([id handler] (reg-event-db id nil handler))
-  ([id interceptors handler] (rf/reg-event-db id (concat kee-frame-interceptors interceptors) handler)))
+  ([id interceptors handler] (rf/reg-event-db id interceptors handler)))
 
 (defn reg-chain-named
   "Same as `reg-chain`, but with manually named event handlers. Useful when you need more meaningful names in your
@@ -109,7 +104,7 @@
       (assoc-in ctx [:db :customers customer-id] customer-data)))
   ```"
   [& handlers]
-  (apply chain/reg-chain-named* kee-frame-interceptors handlers))
+  (apply chain/reg-chain-named handlers))
 
 (defn reg-chain
   "Register a list of re-frame fx handlers, chained together.
@@ -142,7 +137,7 @@
       (assoc-in ctx [:db :customers customer-id] customer-data)))
   ```"
   [id & handlers]
-  (apply chain/reg-chain* id kee-frame-interceptors handlers))
+  (apply chain/reg-chain id handlers))
 
 (defn path-for
   "Make a uri from route data. Useful for avoiding hard coded links in your app.

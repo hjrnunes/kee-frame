@@ -33,7 +33,8 @@
                                  :config (s/keys :req-un [::breakpoints ::debounce-ms]))))
 
 (s/def ::start-options (s/keys :opt-un [::routes ::router ::hash-routing? ::root-component ::initial-db ::log
-                                        ::app-db-spec ::debug? ::debug-config ::chain-links ::screen ::scroll]))
+                                        ::app-db-spec ::debug? ::debug-config ::chain-links ::screen ::scrol
+                                        ::interceptors]))
 
 (defn log-spec-error [new-db spec]
   (console :group "*** Spec error when updating DB, rolling back ***")
